@@ -54,7 +54,7 @@ const SnippetCard = ({ snippet }: Props) => {
           </Text>
         )}
 
-        <Text fontSize="sm" whiteSpace="pre-wrap">{snippet.content}</Text>
+        <Text fontSize="sm" whiteSpace="pre-wrap" overflow="hidden" textOverflow="ellipsis" maxHeight="18em">{snippet.content}</Text>
       </VStack>
 
       <Box position="absolute" bottom={4} left={4} right={4}>
