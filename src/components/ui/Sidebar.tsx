@@ -8,7 +8,7 @@ const Sidebar = () => {
 
   return (
   <Box w="200px" bg="gray.800"  h="100vh">
-    <Heading color="yellow.500" size="xl" mb={4} mt={4}>📌 Pinned Snippets</Heading>
+    <Heading color="yellow.500" size="xl" mb={4} mt={4} transition="all 0.3s" _hover={{color: "yellow.300", textShadow: "0 0 8px rgba(139, 117, 0, 0.4)",}}>📌 Pinned Snippets</Heading>
     <VStack align="start" gap={2}>
       {pinnedSnippets.length === 0 && (
         <Text fontSize="sm" color="gray.500">No pinned snippets</Text>

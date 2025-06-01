@@ -65,7 +65,7 @@ const SnippetCard = ({ snippet }: Props) => {
               colorScheme="green"
               variant="ghost"
               _hover={{
-                background: "green.700",
+                background: "green.600",
                 color: "white",
               }}
             >
