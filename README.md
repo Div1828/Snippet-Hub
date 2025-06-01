@@ -1,7 +1,9 @@
-SnippetHub
+-->SnippetHub
+
 A React-based snippet manager app to create, organize, pin, view, and delete text/code snippets with categories. Built with Chakra UI and React Router for smooth navigation.
 
-Features
+-->Features
+
 Add new snippets with title, content, and category
 
 View snippets on a dedicated page
@@ -19,7 +21,8 @@ Responsive and clean UI built with Chakra UI
 Routing with React Router for seamless navigation
 
 
-Usage
+-->Usage
+
 Add Snippet: Go to "Add Snippet" page, fill in the details, and save.
 
 View Snippet: Click on any snippet title or pinned snippet to see full details.
@@ -31,7 +34,8 @@ Delete: Use the delete button on snippet cards to remove snippets.
 Filter: Use category filter dropdown on the homepage to filter snippets.
 
 
-Technologies Used
+-->Technologies Used
+
 React 19+
 
 Chakra UI
