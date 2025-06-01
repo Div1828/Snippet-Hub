@@ -1,13 +1,25 @@
-import { Heading, Text } from "@chakra-ui/react";
-import type { JSX } from "react";
+import { Heading } from "@chakra-ui/react";
+import { useSnippets } from "../logic/snippetLogic";
+import SnippetList from "../components/SnippetList";
 
-const Homepage = () : JSX.Element => {
+const Homepage: React.FC = () => {
+  const { snippets } = useSnippets();
+
   return (
     <>
-    <Heading color="gray.150" size="6xl" textAlign="center" >SNIPPETHUB</Heading>
-    <Text color="gray.150" fontSize="2xl" p={10}> Welcome to SnippetHub, a place where you can save important things. </Text>
+      <Heading mb={6} color="gray.100" size="2xl" textAlign="center">
+        Your Snippets
+      </Heading>
+
+      {snippets.length === 0 ? (
+        <Heading size="md" color="gray.300" textAlign="center">
+          No snippets added yet.
+        </Heading>
+      ) : (
+        <SnippetList snippets={snippets} />
+      )}
     </>
-  )
-}
+  );
+};
 
 export default Homepage;

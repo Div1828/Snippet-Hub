@@ -1,14 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+
 import App from './App.tsx'
 
-import { Provider } from "./components/ui/ui/provider.tsx"
+import { Provider } from "./components/ui/provider.tsx"
+import { SnippetProvider } from './logic/snippetLogic.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider>
-      <App />
+      <SnippetProvider>
+        <App />
+      </SnippetProvider>
     </Provider>
   </StrictMode>,
-)
+) 
