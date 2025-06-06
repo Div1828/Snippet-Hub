@@ -43,7 +43,7 @@ const categories = Array.from(
           </Heading>
           <VStack gap={4} align="stretch">
             {filtered.map((snippet) => (
-              <SnippetCard key={snippet.id} snippet={snippet} />
+              <SnippetCard key={snippet._id} snippet={snippet} />
             ))}
           </VStack>
         </>

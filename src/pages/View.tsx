@@ -8,7 +8,7 @@ const View = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
   const { snippets, editSnippet } = useSnippets();
 
-  const snippet = snippets.find(s => s.id === id);
+  const snippet = snippets.find(s => s._id === id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");

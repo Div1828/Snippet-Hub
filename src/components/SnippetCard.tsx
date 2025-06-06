@@ -41,7 +41,7 @@ const SnippetCard = ({ snippet }: Props) => {
           background: "blue.600",
           color: "white",
         }}
-        onClick={() => togglePinSnippet(snippet.id)}>
+        onClick={() => togglePinSnippet(snippet._id)}>
         <FaThumbtack />
       </IconButton>
 
@@ -59,7 +59,7 @@ const SnippetCard = ({ snippet }: Props) => {
 
       <Box position="absolute" bottom={4} left={4} right={4}>
         <HStack justifyContent="space-between">
-          <Link to={`/view/${snippet.id}`}>
+          <Link to={`/view/${snippet._id}`}>
             <Button
               size="sm"
               colorScheme="green"
@@ -80,7 +80,7 @@ const SnippetCard = ({ snippet }: Props) => {
             variant="ghost"
             colorScheme="red"
             onClick={() => 
-              deleteSnippet(snippet.id)
+              deleteSnippet(snippet._id)
             }
             _hover={{
               background: "red.600",

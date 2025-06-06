@@ -15,8 +15,8 @@ const Sidebar = () => {
       )}
       {pinnedSnippets.map(snippet => (
         <Link 
-          key={snippet.id} 
-          to={`/view/${snippet.id}`} 
+          key={snippet._id} 
+          to={`/view/${snippet._id}`} 
           style={{ 
             textDecoration: "none", 
             color: "inherit", 

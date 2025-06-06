@@ -10,7 +10,7 @@ const SnippetList = ({ snippets }: Props) => {
   return (
     <SimpleGrid columns={[1, 2, 3]} gap={6}>
       {snippets.map(snippet => (
-        <SnippetCard key={snippet.id} snippet={snippet} />
+        <SnippetCard key={snippet._id} snippet={snippet} />
       ))}
     </SimpleGrid>
   );

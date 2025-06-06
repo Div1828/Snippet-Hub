@@ -1,54 +1,83 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import axios from "axios";
 
 export interface Snippet {
-  id: string;
+  _id: string; 
   title: string;
   content: string;
   category?: string;
-  pinned?: boolean; 
+  pinned?: boolean;
 }
 
 interface SnippetContextType {
   snippets: Snippet[];
-  addSnippet: (snippet: Snippet) => void;
-  deleteSnippet: (id: string) => void;
-  editSnippet: (updated: Snippet) => void;
-  togglePinSnippet: (id: string) => void;
+  addSnippet: (snippet: Omit<Snippet, "_id" | "pinned">) => Promise<void>;
+  deleteSnippet: (id: string) => Promise<void>;
+  editSnippet: (updated: Snippet) => Promise<void>;
+  togglePinSnippet: (id: string) => Promise<void>;
 }
 
 const SnippetContext = createContext<SnippetContextType | undefined>(undefined);
 
 export const SnippetProvider = ({ children }: { children: ReactNode }) => {
-  const [snippets, setSnippets] = useState<Snippet[]>(() => {
-    const saved = localStorage.getItem("snippets");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [snippets, setSnippets] = useState<Snippet[]>([]);
 
   useEffect(() => {
-    localStorage.setItem("snippets", JSON.stringify(snippets));
-  }, [snippets]);
+    const fetchSnippets = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/snippets");
+        setSnippets(res.data);
+      } catch (err) {
+        console.error("Failed to fetch snippets:", err);
+      }
+    };
+    fetchSnippets();
+  }, []);
 
-  const addSnippet = (snippet: Snippet) => {
-    setSnippets(prev => [...prev, { ...snippet, pinned: false }]);
+  const addSnippet = async (snippet: Omit<Snippet, "_id" | "pinned">) => {
+    try {
+      const response = await axios.post<Snippet>("http://localhost:5000/api/snippets", snippet);
+      setSnippets((prev) => [...prev, response.data]);
+    } catch (err) {
+      console.error("Failed to add snippet:", err);
+    }
   };
 
-  const deleteSnippet = (id: string) => {
-    setSnippets(prev => prev.filter(snippet => snippet.id !== id));
+  const deleteSnippet = async (id: string) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/snippets/${id}`);
+      setSnippets((prev) => prev.filter((snippet) => snippet._id !== id));
+    } catch (err) {
+      console.error("Failed to delete snippet:", err);
+    }
   };
 
-  const editSnippet = (updated: Snippet) => {
-    setSnippets(prev =>
-      prev.map(snippet => (snippet.id === updated.id ? updated : snippet))
-    );
+  const editSnippet = async (updated: Snippet) => {
+    try {
+      const res = await axios.put(`http://localhost:5000/api/snippets/${updated._id}`, updated);
+      const updatedSnippet = res.data;
+      setSnippets((prev) =>
+        prev.map((s) => (s._id === updatedSnippet._id ? updatedSnippet : s))
+      );
+    } catch (err) {
+      console.error("Failed to edit snippet:", err);
+    }
   };
 
-  const togglePinSnippet = (id: string) => {
-    setSnippets(prev =>
-      prev.map(snippet =>
-        snippet.id === id ? { ...snippet, pinned: !snippet.pinned } : snippet
-      )
-    );
+  const togglePinSnippet = async (id: string) => {
+    try {
+      const snippet = snippets.find((s) => s._id === id);
+      if (!snippet) return;
+
+      const updated = { ...snippet, pinned: !snippet.pinned };
+      const res = await axios.put(`http://localhost:5000/api/snippets/${id}`, updated);
+      setSnippets((prev) =>
+        prev.map((s) => (s._id === id ? res.data : s))
+      );
+    } catch (err) {
+      console.error("Failed to toggle pin:", err);
+    }
   };
 
   return (
