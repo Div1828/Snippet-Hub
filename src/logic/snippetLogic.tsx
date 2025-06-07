@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import axios from "axios";
+import { axiosInstance } from "./authContext";
 import { useAuth } from "./authContext"; 
 
 export interface Snippet {
@@ -9,10 +9,16 @@ export interface Snippet {
   content: string;
   category?: string;
   pinned?: boolean;
-  owner?: string;
+  owner?: {
+    _id: string;
+    username: string;
+  };
+  ownerUsername?: String
   isPublic?: boolean;
   collaborators?: string[];
 }
+
+
 
 interface SnippetContextType {
   snippets: Snippet[];
@@ -20,12 +26,12 @@ interface SnippetContextType {
   deleteSnippet: (id: string) => Promise<void>;
   editSnippet: (updated: Snippet) => Promise<void>;
   togglePinSnippet: (id: string) => Promise<void>;
+  togglePublicSnippet: (d: string) => Promise<void>;
 }
 
 const SnippetContext = createContext<SnippetContextType | undefined>(undefined);
 
 export const SnippetProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth(); 
   const [snippets, setSnippets] = useState<Snippet[]>([]);
 
   const getAuthHeader = () => {
@@ -33,29 +39,29 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  useEffect(() => {
-    const fetchSnippets = async () => {
-      if (!user) {
-        setSnippets([]); 
-        return;
-      }
+  const { user, loading } = useAuth();
 
-      try {
-        const res = await axios.get("http://localhost:5000/api/snippets", {
-          headers: getAuthHeader(),
-        });
-        setSnippets(res.data);
-      } catch (err) {
-        console.error("Failed to fetch snippets:", err);
-      }
-    };
+useEffect(() => {
+  const fetchSnippets = async () => {
+    if (loading) return; 
 
-    fetchSnippets(); 
-  }, [user]);
+    try {
+      const res = await axiosInstance.get("http://localhost:5000/api/snippets", {
+        headers: getAuthHeader(),
+      });
+      setSnippets(res.data);
+    } catch (err) {
+      console.error("Failed to fetch snippets:", err);
+    }
+  };
+
+  fetchSnippets();
+}, [user, loading]);
+
 
   const addSnippet = async (snippet: Omit<Snippet, "_id" | "pinned">) => {
     try {
-      const response = await axios.post<Snippet>(
+      const response = await axiosInstance.post<Snippet>(
         "http://localhost:5000/api/snippets",
         snippet,
         { headers: getAuthHeader() }
@@ -68,7 +74,7 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteSnippet = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:5000/api/snippets/${id}`, {
+      await axiosInstance.delete(`http://localhost:5000/api/snippets/${id}`, {
         headers: getAuthHeader(),
       });
       setSnippets((prev) => prev.filter((snippet) => snippet._id !== id));
@@ -79,7 +85,7 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
 
   const editSnippet = async (updated: Snippet) => {
     try {
-      const res = await axios.put(
+      const res = await axiosInstance.put(
         `http://localhost:5000/api/snippets/${updated._id}`,
         updated,
         { headers: getAuthHeader() }
@@ -99,7 +105,7 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
       if (!snippet) return;
 
       const updated = { ...snippet, pinned: !snippet.pinned };
-      const res = await axios.put(
+      const res = await axiosInstance.put(
         `http://localhost:5000/api/snippets/${id}`,
         updated,
         { headers: getAuthHeader() }
@@ -112,9 +118,35 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+
+  const togglePublicSnippet = async (id: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/snippets/${id}/toggle-public`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to toggle visibility");
+
+      const data = await res.json();
+
+      setSnippets((prev) =>
+        prev.map((snip) =>
+          snip._id === id ? { ...snip, isPublic: data.isPublic } : snip
+        )
+      );
+    } catch (err) {
+      console.error("Error toggling public/private:", err);
+    }
+  };
+
   return (
     <SnippetContext.Provider
-      value={{ snippets, addSnippet, deleteSnippet, editSnippet, togglePinSnippet }}
+      value={{ snippets, addSnippet, deleteSnippet, editSnippet, togglePinSnippet, togglePublicSnippet }}
     >
       {children}
     </SnippetContext.Provider>

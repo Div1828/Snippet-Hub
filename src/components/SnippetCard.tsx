@@ -1,4 +1,4 @@
-import { Box, IconButton, Text, VStack, HStack, Button } from "@chakra-ui/react";
+import { Box, IconButton, Text, VStack, HStack, Button, Badge } from "@chakra-ui/react";
 import { useSnippets } from "../logic/snippetLogic";
 import { FaThumbtack, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -9,7 +9,7 @@ interface Props {
 }
 
 const SnippetCard = ({ snippet }: Props) => {
-  const { togglePinSnippet, deleteSnippet } = useSnippets();
+  const { togglePinSnippet, deleteSnippet, togglePublicSnippet } = useSnippets();
 
   return (
     <Box
@@ -27,6 +27,7 @@ const SnippetCard = ({ snippet }: Props) => {
         boxShadow: "lg",
       }}
     >
+      
       <IconButton
         aria-label="Pin snippet"
         pointerEvents="auto"
@@ -41,7 +42,8 @@ const SnippetCard = ({ snippet }: Props) => {
           background: "blue.600",
           color: "white",
         }}
-        onClick={() => togglePinSnippet(snippet._id)}>
+        onClick={() => togglePinSnippet(snippet._id)}
+      >
         <FaThumbtack />
       </IconButton>
 
@@ -54,9 +56,24 @@ const SnippetCard = ({ snippet }: Props) => {
           </Text>
         )}
 
-        <Text fontSize="sm" whiteSpace="pre-wrap" overflow="hidden" textOverflow="ellipsis" maxHeight="18em">{snippet.content}</Text>
+        {snippet.collaborators && snippet.collaborators.length > 0 && (
+          <Text fontStyle="italic" fontSize="xs" color="gray.400">
+            Collaborators: {snippet.collaborators.join(", ")}
+          </Text>
+        )}
+
+        <Text
+          fontSize="sm"
+          whiteSpace="pre-wrap"
+          overflow="hidden"
+          textOverflow="ellipsis"
+          maxHeight="18em"
+        >
+          {snippet.content}
+        </Text>
       </VStack>
 
+      
       <Box position="absolute" bottom={4} left={4} right={4}>
         <HStack justifyContent="space-between">
           <Link to={`/view/${snippet._id}`}>
@@ -73,21 +90,40 @@ const SnippetCard = ({ snippet }: Props) => {
             </Button>
           </Link>
 
+          
+          <Badge
+            as="button"
+            onClick={() => togglePublicSnippet(snippet._id)}
+            px={5}
+            py={2}
+            fontSize="md"
+            borderRadius="lg"
+            background={snippet.isPublic ? "green.600" : "red"}
+            _active={{ 
+              transform: "scale(0.85)",  
+              opacity: 0.7,               
+            }}
+            transition="transform 0.3s ease, opacity 0.1s ease"
+            _hover={{
+              cursor: "pointer",
+              opacity: 0.85,
+            }}
+          >
+            {snippet.isPublic ? "Public" : "Private"}
+          </Badge>
+
           <IconButton
             aria-label="Delete snippet"
             pointerEvents="auto"
             size="sm"
             variant="ghost"
             colorScheme="red"
-            onClick={() => 
-              deleteSnippet(snippet._id)
-            }
+            onClick={() => deleteSnippet(snippet._id)}
             _hover={{
               background: "red.600",
               color: "white",
             }}
-            
-            >
+          >
             <FaTrash />
           </IconButton>
         </HStack>
