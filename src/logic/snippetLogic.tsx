@@ -1,13 +1,17 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import axios from "axios";
+import { useAuth } from "./authContext"; 
 
 export interface Snippet {
-  _id: string; 
+  _id: string;
   title: string;
   content: string;
   category?: string;
   pinned?: boolean;
+  owner?: string;
+  isPublic?: boolean;
+  collaborators?: string[];
 }
 
 interface SnippetContextType {
@@ -21,23 +25,41 @@ interface SnippetContextType {
 const SnippetContext = createContext<SnippetContextType | undefined>(undefined);
 
 export const SnippetProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth(); 
   const [snippets, setSnippets] = useState<Snippet[]>([]);
+
+  const getAuthHeader = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   useEffect(() => {
     const fetchSnippets = async () => {
+      if (!user) {
+        setSnippets([]); 
+        return;
+      }
+
       try {
-        const res = await axios.get("http://localhost:5000/api/snippets");
+        const res = await axios.get("http://localhost:5000/api/snippets", {
+          headers: getAuthHeader(),
+        });
         setSnippets(res.data);
       } catch (err) {
         console.error("Failed to fetch snippets:", err);
       }
     };
-    fetchSnippets();
-  }, []);
+
+    fetchSnippets(); 
+  }, [user]);
 
   const addSnippet = async (snippet: Omit<Snippet, "_id" | "pinned">) => {
     try {
-      const response = await axios.post<Snippet>("http://localhost:5000/api/snippets", snippet);
+      const response = await axios.post<Snippet>(
+        "http://localhost:5000/api/snippets",
+        snippet,
+        { headers: getAuthHeader() }
+      );
       setSnippets((prev) => [...prev, response.data]);
     } catch (err) {
       console.error("Failed to add snippet:", err);
@@ -46,7 +68,9 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteSnippet = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:5000/api/snippets/${id}`);
+      await axios.delete(`http://localhost:5000/api/snippets/${id}`, {
+        headers: getAuthHeader(),
+      });
       setSnippets((prev) => prev.filter((snippet) => snippet._id !== id));
     } catch (err) {
       console.error("Failed to delete snippet:", err);
@@ -55,7 +79,11 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
 
   const editSnippet = async (updated: Snippet) => {
     try {
-      const res = await axios.put(`http://localhost:5000/api/snippets/${updated._id}`, updated);
+      const res = await axios.put(
+        `http://localhost:5000/api/snippets/${updated._id}`,
+        updated,
+        { headers: getAuthHeader() }
+      );
       const updatedSnippet = res.data;
       setSnippets((prev) =>
         prev.map((s) => (s._id === updatedSnippet._id ? updatedSnippet : s))
@@ -71,7 +99,11 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
       if (!snippet) return;
 
       const updated = { ...snippet, pinned: !snippet.pinned };
-      const res = await axios.put(`http://localhost:5000/api/snippets/${id}`, updated);
+      const res = await axios.put(
+        `http://localhost:5000/api/snippets/${id}`,
+        updated,
+        { headers: getAuthHeader() }
+      );
       setSnippets((prev) =>
         prev.map((s) => (s._id === id ? res.data : s))
       );

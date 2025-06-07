@@ -1,20 +1,22 @@
 import { useState } from "react";
-import { Heading, Text, Input, Box, Flex, IconButton } from "@chakra-ui/react";
+import { Heading, Text, Input, Box, Flex, IconButton, Button } from "@chakra-ui/react";
 import { useSnippets } from "../logic/snippetLogic";
 import { LuSearch } from "react-icons/lu";
 import SnippetList from "../components/SnippetList";
+import { useAuth } from "../logic/authContext";
 
 const Homepage: React.FC = () => {
   const { snippets } = useSnippets();
-
+  const { user, logout } = useAuth();
 
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  
-  const filteredSnippets = snippets.filter(snippet =>
-    snippet.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSnippets = snippets
+    .filter((snippet) =>
+      snippet.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((snippet) => (user ? true : snippet.isPublic));
 
   return (
     <>
@@ -72,6 +74,13 @@ const Homepage: React.FC = () => {
       ) : (
         <SnippetList snippets={filteredSnippets} />
       )}
+
+      
+      <Box  position="fixed" bottom="4" right="4" zIndex="20">
+        <Button background="gray.800" color="white" colorScheme="red" onClick={logout}>
+          Logout
+        </Button>
+      </Box>
     </>
   );
 };

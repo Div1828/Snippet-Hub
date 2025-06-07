@@ -35,11 +35,11 @@ const AddSnip: React.FC = () => {
     setContent("");
     setCategory("");
     setCustomCategory("");
-    navigate("/");
+    navigate("/homepage");
   };
 
   return (
-    <Box maxW="xl" mx="auto" mt={8}>
+    <Box background="black" maxW="md" mx="auto" mt={10} p={6} boxShadow="md" borderRadius="md">
       <Heading mb={4}>Add a New Snippet</Heading>
       <VStack gap={4} align="stretch">
         <Input

@@ -17,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Text>
           <Box>
             <Text  display="inline-block" transition="transform 0.1s" _active={{ transform: "scale(0.95)" }}>
-              <Link to="/">🏠 Home</Link>
+              <Link to="/homepage">🏠 Home</Link>
             </Text>
           </Box>
           <Box>
