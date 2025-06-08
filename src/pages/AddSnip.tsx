@@ -12,6 +12,8 @@ import {
 import { useSnippets } from "../logic/snippetLogic";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const AddSnip: React.FC = () => {
   const { addSnippet } = useSnippets();
   const [title, setTitle] = useState("");
@@ -29,18 +31,17 @@ const AddSnip: React.FC = () => {
     if (usernames.length === 0) return true;
 
     try {
-      
       const validations = usernames.map(async (username) => {
-        const res = await fetch(`http://localhost:5000/users/exists?username=${encodeURIComponent(username)}`);
+        const res = await fetch(
+          `${API_URL}/users/exists?username=${encodeURIComponent(username)}`
+        );
         if (!res.ok) throw new Error(`Error validating username: ${username}`);
         const data = await res.json();
         return { username, exists: data.exists };
       });
 
-      
       const results = await Promise.all(validations);
 
-      
       const invalids = results.filter((r) => !r.exists).map((r) => r.username);
 
       if (invalids.length > 0) {
@@ -81,7 +82,6 @@ const AddSnip: React.FC = () => {
 
     await addSnippet(newSnippet);
 
-    
     setTitle("");
     setContent("");
     setCategory("");
@@ -93,8 +93,18 @@ const AddSnip: React.FC = () => {
   };
 
   return (
-    <Box background="black" maxW="md" mx="auto" mt={10} p={6} boxShadow="md" borderRadius="md">
-      <Heading mb={4} color="white">Add a New Snippet</Heading>
+    <Box
+      background="black"
+      maxW="md"
+      mx="auto"
+      mt={10}
+      p={6}
+      boxShadow="md"
+      borderRadius="md"
+    >
+      <Heading mb={4} color="white">
+        Add a New Snippet
+      </Heading>
       <VStack gap={4} align="stretch">
         {error && <Text color="red.400">{error}</Text>}
 

@@ -1,7 +1,7 @@
-// logic/auth.ts
+
 import axios from "axios";
 
-const API = "http://localhost:5000/api/auth";
+const API = import.meta.env.VITE_API_URL + "/auth";
 
 export const registerUser = async (data: { username: string; password: string }) => {
   try {
@@ -22,7 +22,6 @@ export const loginUser = async (data: { username: string; password: string }) =>
     throw err.response?.data?.message || "Login failed";
   }
 };
-
 
 export const fetchCurrentUser = async () => {
   const token = localStorage.getItem("token");

@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Heading, Text, Input, Box, Flex, IconButton, Button } from "@chakra-ui/react";
+import {
+  Heading,
+  Text,
+  Input,
+  Box,
+  Flex,
+  IconButton,
+  Button,
+} from "@chakra-ui/react";
 import { useSnippets } from "../logic/snippetLogic";
 import { LuSearch } from "react-icons/lu";
 import SnippetList from "../components/SnippetList";
@@ -11,12 +19,18 @@ const Homepage: React.FC = () => {
 
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"card" | "list">("card");
 
   const filteredSnippets = snippets
     .filter((snippet) =>
       snippet.title.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter((snippet) => (user ? true : snippet.isPublic));
+
+  // Toggle handler for view mode
+  const toggleViewMode = () => {
+    setViewMode((prev) => (prev === "card" ? "list" : "card"));
+  };
 
   return (
     <>
@@ -46,13 +60,13 @@ const Homepage: React.FC = () => {
             _placeholder={{ color: "gray.500" }}
             px={3}
             py={2}
-            value={inputValue}                
-            onChange={(e) => setInputValue(e.target.value)} 
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             flex="1"
             _focus={{ outline: "none" }}
           />
           <IconButton
-            onClick={() => setSearchQuery(inputValue)} 
+            onClick={() => setSearchQuery(inputValue)}
             aria-label="Search"
             variant="ghost"
             color="gray.400"
@@ -67,18 +81,29 @@ const Homepage: React.FC = () => {
         Your Snippets
       </Heading>
 
+    
+      <Box mb={4} textAlign="center">
+        <Button onClick={toggleViewMode} colorScheme="blue">
+          Switch to {viewMode === "card" ? "List" : "Card"} View
+        </Button>
+      </Box>
+
       {filteredSnippets.length === 0 ? (
         <Heading size="md" color="gray.300" textAlign="center">
           No snippets found.
         </Heading>
       ) : (
-        <SnippetList snippets={filteredSnippets} />
+        <SnippetList snippets={filteredSnippets} viewMode={viewMode} />
       )}
 
-      
-      <Box  position="fixed" bottom="4" right="4" zIndex="20">
-        <Button background="gray.800" color="white" colorScheme="red" onClick={logout}>
-          Logout
+      <Box position="fixed" bottom="4" right="4" zIndex="20">
+        <Button
+          background="gray.800"
+          color="white"
+          colorScheme="red"
+          onClick={logout}
+        >
+          Logout {user ? `(${user})` : ""}
         </Button>
       </Box>
     </>

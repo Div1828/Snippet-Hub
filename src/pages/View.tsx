@@ -1,3 +1,5 @@
+// view.tsx
+
 import { useParams } from "react-router-dom";
 import {
   Heading,
@@ -8,12 +10,16 @@ import {
   Textarea,
   VStack,
   HStack,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import { useSnippets } from "../logic/snippetLogic";
 import { useState, useEffect } from "react";
 import type { JSX } from "react";
 import socket from "../socket";
-import { useAuth } from "../logic/authContext"; 
+import { useAuth } from "../logic/authContext";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const View = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
@@ -28,8 +34,8 @@ const View = (): JSX.Element => {
   const [category, setCategory] = useState("");
   const [collaboratorsInput, setCollaboratorsInput] = useState("");
   const [error, setError] = useState("");
+  const [activeUsers, setActiveUsers] = useState<string[]>([]);
 
-  
   const canEdit =
     snippet &&
     (username === snippet.ownerUsername ||
@@ -45,9 +51,9 @@ const View = (): JSX.Element => {
   }, [snippet]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !username) return;
 
-    socket.emit("joinSnippet", id);
+    socket.emit("joinSnippet", id, username);
 
     socket.on("snippetUpdated", (newContent: string) => {
       if (!isEditing) {
@@ -55,11 +61,16 @@ const View = (): JSX.Element => {
       }
     });
 
+    socket.on("presenceUpdate", (users: string[]) => {
+      setActiveUsers(users.filter((user) => user !== username));
+    });
+
     return () => {
-      socket.emit("leaveSnippet", id);
+      socket.emit("leaveSnippet", id, username);
       socket.off("snippetUpdated");
+      socket.off("presenceUpdate");
     };
-  }, [id, isEditing]);
+  }, [id, username, isEditing]);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
@@ -72,9 +83,7 @@ const View = (): JSX.Element => {
     try {
       const validations = usernames.map(async (username) => {
         const res = await fetch(
-          `http://localhost:5000/users/exists?username=${encodeURIComponent(
-            username
-          )}`
+          `${API_BASE}/users/exists?username=${encodeURIComponent(username)}`
         );
         if (!res.ok) throw new Error(`Error validating username: ${username}`);
         const data = await res.json();
@@ -146,6 +155,25 @@ const View = (): JSX.Element => {
         )}
       </HStack>
 
+      {activeUsers.length > 0 && (
+        <Wrap mb={4}>
+          {activeUsers.map((u) => (
+            <WrapItem key={u}>
+              <Box
+                px={3}
+                py={1}
+                bg="green.600"
+                color="white"
+                borderRadius="full"
+                fontSize="sm"
+              >
+                {u} editing...
+              </Box>
+            </WrapItem>
+          ))}
+        </Wrap>
+      )}
+
       {isEditing ? (
         <VStack align="stretch" gap={4}>
           {error && <Text color="red.400">{error}</Text>}
@@ -187,6 +215,11 @@ const View = (): JSX.Element => {
           {snippet.category && (
             <Text mt={2} fontStyle="italic" color="gray.400">
               Category: {snippet.category}
+            </Text>
+          )}
+          {snippet.ownerUsername && (
+            <Text mt={2} fontStyle="italic" color="gray.400">
+              Owner: {snippet.ownerUsername}
             </Text>
           )}
           {snippet.collaborators && snippet.collaborators.length > 0 && (
