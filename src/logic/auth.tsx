@@ -1,7 +1,7 @@
 
 import axios from "axios";
 
-const API = import.meta.env.VITE_API_URL + "/auth";
+const API = import.meta.env.VITE_API_URL + "/api/auth";
 
 export const registerUser = async (data: { username: string; password: string }) => {
   try {
