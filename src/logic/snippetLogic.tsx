@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { axiosInstance } from "./authContext";
-import { useAuth } from "./authContext"; 
+import { useAuth } from "./authContext";
 
 export interface Snippet {
   _id: string;
@@ -31,25 +31,31 @@ const SnippetContext = createContext<SnippetContextType | undefined>(undefined);
 
 export const SnippetProvider = ({ children }: { children: ReactNode }) => {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
+  const { user, loading } = useAuth();
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  const { user, loading } = useAuth();
-
   useEffect(() => {
     const fetchSnippets = async () => {
       if (loading) return;
 
       try {
-        const res = await axiosInstance.get("/snippets", {
+        const res = await axiosInstance.get<unknown>("/snippets", {
           headers: getAuthHeader(),
         });
-        setSnippets(res.data);
+
+        if (Array.isArray(res.data)) {
+          setSnippets(res.data as Snippet[]);
+        } else {
+          console.error("Invalid response: expected an array of snippets.", res.data);
+          setSnippets([]); // fallback to empty
+        }
       } catch (err) {
         console.error("Failed to fetch snippets:", err);
+        setSnippets([]); // ensure it's always an array
       }
     };
 
@@ -82,14 +88,13 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
 
   const editSnippet = async (updated: Snippet) => {
     try {
-      const res = await axiosInstance.put(
+      const res = await axiosInstance.put<Snippet>(
         `/snippets/${updated._id}`,
         updated,
         { headers: getAuthHeader() }
       );
-      const updatedSnippet = res.data;
       setSnippets((prev) =>
-        prev.map((s) => (s._id === updatedSnippet._id ? updatedSnippet : s))
+        prev.map((s) => (s._id === res.data._id ? res.data : s))
       );
     } catch (err) {
       console.error("Failed to edit snippet:", err);
@@ -102,11 +107,12 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
       if (!snippet) return;
 
       const updated = { ...snippet, pinned: !snippet.pinned };
-      const res = await axiosInstance.put(
+      const res = await axiosInstance.put<Snippet>(
         `/snippets/${id}`,
         updated,
         { headers: getAuthHeader() }
       );
+
       setSnippets((prev) =>
         prev.map((s) => (s._id === id ? res.data : s))
       );
@@ -117,16 +123,15 @@ export const SnippetProvider = ({ children }: { children: ReactNode }) => {
 
   const togglePublicSnippet = async (id: string) => {
     try {
-      const res = await axiosInstance.patch(
+      const res = await axiosInstance.patch<{ isPublic: boolean }>(
         `/snippets/${id}/toggle-public`,
         null,
         { headers: getAuthHeader() }
       );
-      const data = res.data;
 
       setSnippets((prev) =>
         prev.map((snip) =>
-          snip._id === id ? { ...snip, isPublic: data.isPublic } : snip
+          snip._id === id ? { ...snip, isPublic: res.data.isPublic } : snip
         )
       );
     } catch (err) {

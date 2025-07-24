@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   const { snippets } = useSnippets();
-  const pinnedSnippets = snippets.filter(snip => snip.pinned);
+  const pinnedSnippets = Array.isArray(snippets) ? snippets.filter(snippet => snippet.pinned) : [];
 
   return (
   <Box w="200px" bg="gray.800"  h="100vh">
@@ -18,7 +18,7 @@ const Sidebar = () => {
           key={snippet._id} 
           to={`/view/${snippet._id}`} 
           style={{ 
-            textDecoration: "none", 
+            textDecoration: "none",
             color: "inherit", 
             width: "100%" 
           }}
